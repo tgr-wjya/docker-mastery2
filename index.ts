@@ -9,6 +9,7 @@ import { Elysia, t } from "elysia";
 import swagger from "@elysiajs/swagger";
 
 const PORT = Bun.env.PORT ?? 3000;
+const HOSTNAME = Bun.env.HOSTNAME ?? "0.0.0.0";
 export const HEALTH_DEGRADED = Bun.env.HEALTH_DEGRADED ?? false;
 const MIN_FIELD_LENGTH = 3;
 
@@ -45,7 +46,7 @@ export const app = new Elysia()
 	)
 
 	.use(swagger())
-	.listen(PORT);
+	.listen({ port: PORT, hostname: HOSTNAME });
 
 console.log(`Elysia listening at http://localhost:${app.server?.port}`);
 console.log(

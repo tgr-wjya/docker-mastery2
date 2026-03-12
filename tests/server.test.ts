@@ -16,6 +16,12 @@ const BASE_URL = Bun.env.BASE_URL ?? "http://localhost:3000";
 let HEALTH_DEGRADED = true;
 
 describe("TESTING SERVER", () => {
+	it("Should return headers", async () => {
+		const response = await app.handle(new Request(`${BASE_URL}`));
+
+		expect(response.headers.get("X-Powered-By")).toBe("Elysia + Bun + Railway");
+	});
+
 	describe("GET /root", () => {
 		it("Should return app name, author, version and uptime", async () => {
 			const response = await app.handle(new Request(`${BASE_URL}`));
