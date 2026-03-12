@@ -7,6 +7,11 @@
     "@biomejs/biome": "^2.4.6",
     "@types/bun": "latest"
   },
+  "scripts": {
+    "lint": "biome lint",
+    "dev": "bun --watch index.ts",
+    "test": "bun test"
+  },
   "peerDependencies": {
     "typescript": "^5"
   },

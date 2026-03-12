@@ -16,6 +16,9 @@ x mins via [codetime](https://codetime.dev/en/)
 
 ## what i learned
 
+- `WORKDIR /app` is essentially just a directory inside the container, its containing your workspace which is `docker-mastery2`
+
+
 ## find me
 
 [portfolio](https://tgr-wjya.github.io) · [linkedin](https://linkedin.com/in/tegar-wijaya-kusuma-591a881b9) · [email](mailto:tgr.wjya.queue.top126@pm.me)
