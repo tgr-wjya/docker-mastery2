@@ -18,6 +18,10 @@ understanding docker is an integral part of becoming a devops engineer. scaffold
 
 **check the container app here**: [status-api](https://status-api.ashypebble-debb1f65.southeastasia.azurecontainerapps.io/)
 
+## openapi documentation
+
+check out the openapi documentation here: [status-api swagger docs](https://status-api.ashypebble-debb1f65.southeastasia.azurecontainerapps.io/swagger)
+
 ## endpoints
 
 | method | what it does |
@@ -25,10 +29,6 @@ understanding docker is an integral part of becoming a devops engineer. scaffold
 | `GET /` | app name, author, version and uptime |
 | `GET /health` | returns `{ status: "ok" }` with `200`, or `{ status: "degraded" }` with `503` |
 | `POST /echo` | returns whatever JSON body you send it |
-
-> i'll likely include an openapi docs later.
-
-in the meantime, just add `/swagger` at the end of the **url**, check the swagger openapi here [status-api-swagger](https://status-api.ashypebble-debb1f65.southeastasia.azurecontainerapps.io/swagger)
 
 ## what i learned
 
@@ -83,65 +83,65 @@ in the meantime, just add `/swagger` at the end of the **url**, check the swagge
 ## how to deploy on azure with azure container registry 101
 
 1. **first step** is to obviously develop the project
-  - continue to iterate on your project until its worthy for deployment
+    - continue to iterate on your project until its worthy for deployment
 
 2. **second**, get your azure container registry ready. setting it up is simple:
-  - go to `container registries`, and create your registry
-  - **on how azure registries naming should be**:
-    - naming your registry **after the project** `(statusapi)` is actually fine when the registry is project-scoped.
-    - the convention of **using your name** makes more sense when the registry is meant to hold multiple projects, one registry, many images.
-    - **the real best practice** for ACR is one registry per team/org, multiple repositories inside it
-    - ```
-      tgrwjya.azurecr.io/
-        status-api:latest
-        guestbook-api:latest
-        kaomoji-api:latest
-      ```
+    - go to `container registries`, and create your registry
+    - **on how azure registries naming should be**:
+      - naming your registry **after the project** `(statusapi)` is actually fine when the registry is project-scoped.
+      - the convention of **using your name** makes more sense when the registry is meant to hold multiple projects, one registry, many images.
+      - **the real best practice** for ACR is one registry per team/org, multiple repositories inside it
+      - ```
+        tgrwjya.azurecr.io/
+          status-api:latest
+          guestbook-api:latest
+          kaomoji-api:latest
+        ```
 
 3. **third** how to **tag, build and push** your image to azure
-  - make sure to `az acr login` before tagging and pushing said image.
-    - ```bash
-      az acr login --name <registry-name>
-      ```
-  - **tagging and pushing an image**:
-    - to push it to azure registries, you must create a tag that includes the registry address:
-    - ```bash
-      docker tag <local-image-name>:<tag> <acr-login-server>/<repository-name>:<tag>
-      
-      # in my example
-      docker tag status-api:latest statusapi-dxa6e4dje7hsera4.azurecr.io/status-api:latest
-      ```
-    - only then, you can push it to azure:
-    - ```bash
-      docker push <acr-login-server>/<repository-name>:<tag>
-      
-      # in my example
-      docker push statusapi-dxa6e4dje7hsera4.azurecr.io/status-api:latest
-      ```
-    - docker defaults to `latest` on `docker build` and `docker pull`, but docker tag requires you to specify the tag explicitly.
+    - make sure to `az acr login` before tagging and pushing said image.
+      - ```bash
+        az acr login --name <registry-name>
+        ```
+    - **tagging and pushing an image**:
+      - to push it to azure registries, you must create a tag that includes the registry address:
+      - ```bash
+        docker tag <local-image-name>:<tag> <acr-login-server>/<repository-name>:<tag>
+        
+        # in my example
+        docker tag status-api:latest statusapi-dxa6e4dje7hsera4.azurecr.io/status-api:latest
+        ```
+      - only then, you can push it to azure:
+      - ```bash
+        docker push <acr-login-server>/<repository-name>:<tag>
+        
+        # in my example
+        docker push statusapi-dxa6e4dje7hsera4.azurecr.io/status-api:latest
+        ```
+      - docker defaults to `latest` on `docker build` and `docker pull`, but docker tag requires you to specify the tag explicitly.
 
 4.  **lastly, container app**. 
-  - this step is easy, go to your `resource group`, in my example its `docker-mastery-rg`.
-  - click the `create` button and search for `container app` in the marketplace
-  - point out the deployment source using your said image from the azure registries
-  - if your container is an api, you might want to enable the `ingress`, just don't forget to set the `target port` to your actual project port, in my case its `3000`
-  - and voilà, you've successfully deployed your own container app project!
+    - this step is easy, go to your `resource group`, in my example its `docker-mastery-rg`.
+    - click the `create` button and search for `container app` in the marketplace
+    - point out the deployment source using your said image from the azure registries
+    - if your container is an api, you might want to enable the `ingress`, just don't forget to set the `target port` to your actual project port, in my case its `3000`
+    - and voilà, you've successfully deployed your own container app project!
 
 ## mistakes i made (and fixed)
 
 1. `az acr build` is blocked on azure for students
-  - `az acr build` uses acr tasks, a remote build feature that student subscriptions don't allow.
-  - fix: build locally on the ci runner with `docker build` and push with `docker push` instead.
+    - `az acr build` uses acr tasks, a remote build feature that student subscriptions don't allow.
+    - fix: build locally on the ci runner with `docker build` and push with `docker push` instead.
 
 2. wrong `ACR_NAME` secret value
-  - set it to the full hostname `statusapi-dxa6e4dje7hsera4.azurecr.io` instead of just the registry
-  name `statusapi`. 
-  - this caused `docker push` to resolve a nonexistent host. 
-  - fix: secret should be the registry name only — `.azurecr.io` is appended in the workflow.
+    - set it to the full hostname `statusapi-dxa6e4dje7hsera4.azurecr.io` instead of just the registry
+    name `statusapi`. 
+    - this caused `docker push` to resolve a nonexistent host. 
+    - fix: secret should be the registry name only — `.azurecr.io` is appended in the workflow.
   
 3. missing `az acr login` before `docker push`
-  - `docker push` to azure registries requires docker to be authenticated separately from the azure cli.
-  - fix: add `az acr login --name ${{ secrets.ACR_NAME }}` after `azure/login@v2`.
+    - `docker push` to azure registries requires docker to be authenticated separately from the azure cli.
+    - fix: add `az acr login --name ${{ secrets.ACR_NAME }}` after `azure/login@v2`.
 
 ## find me
 
