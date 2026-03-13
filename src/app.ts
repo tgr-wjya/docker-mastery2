@@ -21,22 +21,47 @@ export const buildServerApp = new Elysia()
 		set.headers["X-Powered-By"] = "Elysia + Bun + Azure";
 	})
 
-	.get("/", () => ({
-		app: "Docker-Mastery",
-		author: "Tegar Wijaya Kusuma",
-		version: "v1.3",
-		uptime: `${Math.floor(process.uptime())}`,
-	}))
+	.get(
+		"/",
+		() => ({
+			app: "Docker-Mastery",
+			author: "Tegar Wijaya Kusuma",
+			version: "v1.3",
+			uptime: `${Math.floor(process.uptime())}`,
+		}),
+		{
+			detail: {
+				summary: "App info",
+				responses: {
+					200: {
+						description: "Returns app name, author, version, uptime",
+					},
+				},
+			},
+		},
+	)
 
-	.get("/health", ({ set }) => {
-		// This whole server is designed to be trivial, this simple conditional perfect for our situation.
-		if (Bun.env.HEALTH_DEGRADED === "true") {
-			set.status = 503;
-			return { status: "degraded" };
-		}
-		set.status = 200;
-		return { status: "ok" };
-	})
+	.get(
+		"/health",
+		({ set }) => {
+			// This whole server is designed to be trivial, this simple conditional perfect for our situation.
+			if (Bun.env.HEALTH_DEGRADED === "true") {
+				set.status = 503;
+				return { status: "degraded" };
+			}
+			set.status = 200;
+			return { status: "ok" };
+		},
+		{
+			detail: {
+				summary: "Health check",
+				responses: {
+					200: { description: "Service is healthy" },
+					503: { description: "Service is degraded" },
+				},
+			},
+		},
+	)
 
 	.post(
 		"/echo",
@@ -49,7 +74,40 @@ export const buildServerApp = new Elysia()
 			body: t.Object({
 				field: t.String({ minLength: MIN_FIELD_LENGTH }),
 			}),
+			detail: {
+				summary: "Echo field value",
+				responses: {
+					201: { description: "Returns the field string value" },
+					422: { description: "Validation error — field too short or missing" },
+				},
+			},
 		},
 	)
 
-	.use(swagger());
+	.use(
+		swagger({
+			documentation: {
+				info: {
+					title: "Docker-Mastery Status API",
+					version: "1.0.0",
+					description:
+						"A minimal system status API deployed on Azure Container Apps.",
+					contact: {
+						name: "Tegar Wijaya Kusuma",
+						url: "https://tgr-wjya.github.io",
+						email: "tgr.wjya.queue.top126@pm.me",
+					},
+				},
+				server: [
+					{
+						url: "https://status-api.ashypebble-debb1f65.southeastasia.azurecontainerapps.io",
+						description: "Production",
+					},
+					{
+						url: "http://localhost:3000",
+						description: "Local",
+					},
+				],
+			},
+		}),
+	);
