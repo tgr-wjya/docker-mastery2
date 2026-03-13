@@ -4,7 +4,7 @@
  * Endpoints:
  * GET /root - returns app name, version, uptime
  * GET /health - returns `{ status: "ok" }` with `200`, or `{ status: "degraded" }` with `503`
- * GET /echo - returns whatever JSON body send
+ * POST /echo - returns whatever JSON body send
  *
  * @author Tegar Wijaya Kusuma
  * @date 14 March 2026
