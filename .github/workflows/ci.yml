@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: action/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # I learned this trick from SonarQube, its more safer to use the full-commit SHA
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # I learned this trick from SonarQube, its more safer to use the full-commit SHA
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@ecf28ddc73e819eb6fa29df6b34ef8921c743461
