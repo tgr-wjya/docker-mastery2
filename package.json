@@ -1,5 +1,5 @@
 {
-  "name": "docker-mastery2",
+  "name": "status-api",
   "module": "index.ts",
   "type": "module",
   "private": true,

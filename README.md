@@ -6,9 +6,9 @@
 
 **14 March 2026**
 
-> raw dockerfile, ci.yml written for deployment on [azure](https://portal.azure.com/)
+> minimal status API. the real value is the deployment: **Dockerfile, Azure Container Registry, Container Apps, and a full GitHub Actions CI pipeline** written from scratch that i did on my own.
 
-actually deploying my app with my own written *dockerfile* and *ci* without llm scaffolding help, to azure
+actually deploying my app with my own written *dockerfile* and *ci* without llm scaffolding help, to azure using Azure Container Registries which then deployed on Container App
 
 the goal is to learn and write the deployment config on my own.
 
@@ -20,7 +20,7 @@ understanding docker is an integral part of becoming a devops engineer. scaffold
 
 ## openapi documentation
 
-check out the openapi documentation here: [status-api swagger docs](https://status-api.ashypebble-debb1f65.southeastasia.azurecontainerapps.io/swagger)
+**check out the openapi documentation here**: [status-api swagger docs](https://status-api.ashypebble-debb1f65.southeastasia.azurecontainerapps.io/swagger)
 
 ## endpoints
 
