@@ -1,6 +1,8 @@
 # Finally writing my own GitHub Action CI
 
 name: CI
+permissions:
+  contents: read # The docs didn't include this at all, oversight indeed.
 
 on:
   push:

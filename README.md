@@ -4,7 +4,7 @@
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/tgr-wjya/docker-mastery2/ci.yml)
 [![codecov](https://codecov.io/gh/tgr-wjya/docker-mastery2/graph/badge.svg?token=4fn6sa5jB7)](https://codecov.io/gh/tgr-wjya/docker-mastery2)
 
-**14 March 2026**
+**15 March 2026**
 
 > minimal status API. the real value is the deployment: **Dockerfile, Azure Container Registry, Container Apps, and a full GitHub Actions CI pipeline** written from scratch that i did on my own.
 
