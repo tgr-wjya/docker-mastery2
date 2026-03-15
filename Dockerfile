@@ -1,10 +1,10 @@
-FROM oven/bun:latest AS builder
+FROM oven/bun:1.3.10 AS builder
 WORKDIR /app
 COPY package*.json bun.lock ./
 RUN bun install --frozen-lockfile
 
 # Stage 2
-FROM oven/bun:latest AS runner
+FROM oven/bun:1.3.10 AS runner
 WORKDIR /app
 COPY --from=builder /app/node_modules ./node_modules
 # This removes the dependencies for the final image, it'll be smaller, and cleaner

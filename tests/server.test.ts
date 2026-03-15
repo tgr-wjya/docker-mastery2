@@ -5,7 +5,7 @@
  * 1) Headers
  *    - GET / should include `X-Powered-By` header
  * 2) GET /
- *    - returns app, author, version and uptime (status 200)
+ *    - returns app, author, version, date and uptime (status 200)
  * 3) GET /health
  *    - healthy: status 200, body { status: "ok" }
  *    - degraded: set `Bun.env.HEALTH_DEGRADED = "true"` before importing the app (or use factory) expect status 503 and degraded body
@@ -36,13 +36,17 @@ describe("TESTING SERVER", () => {
 	});
 
 	describe("GET /root", () => {
-		it("Should return app name, author, version and uptime", async () => {
+		it("Should return app name, author, version, date and uptime", async () => {
 			const response = await app.handle(new Request(`${BASE_URL}`));
 
+			expect(response.status).toBe(200);
 			const data = await response.json();
 			expect(data).toHaveProperty("app", "Docker-Mastery");
 			expect(data).toHaveProperty("author", "Tegar Wijaya Kusuma");
 			expect(data).toHaveProperty("version", "v1.3");
+			expect(data).toHaveProperty("date");
+			expect(typeof data.date).toBe("string");
+			expect(new Date(data.date).toISOString()).toBe(data.date);
 			expect(data).toHaveProperty("uptime");
 			expect(typeof data.uptime).toBe("string");
 		});
