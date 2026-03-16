@@ -87,6 +87,19 @@ so, if you really have the time to check it out, thank you so much!
 - a bit details on the `resource_class` using docker as the executor:
   - `large` gave you 4 cpu and 8gb of ram, this is definitely overkill, that's why i recommend defining the `resource_class`
   - whereas `small` give you 1 cpu and 2 gb of ram which is more than enough for most use cases.
+- biome is awesome!
+- i forgot to include biome `lint/format` or even `ci` on the CI pipeline.
+- thankfully, because of this i was able to learn a valuable mistake/lesson.
+- that, you need your formatter to run both **locally** and on the **ci** to catch an oversight.
+- **what different biome command does:**
+  - `biome lint` runs the linter only. flags code problems but does not touch formatting.
+  - `biome format` runs the formatter only. fixes indentation, quotes, trailing commas, etc but does not check logic. it'll default writing changes. you can add `--write` explicitly.
+  - `biome check` lint + format together. "do both" command, with `--write` it'll fixes what it can. preferred for a dev shortcut: `bun biome check --write .`
+  - `biome ci` same as `check` but it never writes anything, and it exits non-zero on any issue including formatting drift.
+- i'd recommend setting up a pre-commit with husky to help you with formatting.
+  - how to set up husky: `bun add -d husky`
+  - modify the [husky pre-commit](/.husky/_/pre-commit), see my example.
+  - and you could modify it to run your formatter, i rest my case.
 
 ## how to deploy on azure with azure container registry 101
 
