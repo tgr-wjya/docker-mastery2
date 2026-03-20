@@ -2,16 +2,17 @@
  * App System Status API
  *
  * Endpoints:
- * GET /root - returns app name, version, uptime
+ * GET /root - returns app name, author, version, date and uptime
  * GET /health - returns `{ status: "ok" }` with `200`, or `{ status: "degraded" }` with `503`
  * POST /echo - returns whatever JSON body send
  *
  * @author Tegar Wijaya Kusuma
- * @date 18 March 2026
+ * @date 20 March 2026
  */
 
 import { swagger } from "@elysiajs/swagger";
-import { Elysia, t } from "elysia";
+import { Elysia, t, ValidationError } from "elysia";
+import { RootHandler } from "../tests/types";
 import { NotFoundException } from "./errors/errors";
 
 /**
@@ -23,29 +24,40 @@ const HTTP_SERVICE_UNAVAILABLE = 503;
 // Schema validation Const
 const MIN_TEXT_LENGTH = 5;
 const MIN_NAME_LENGTH = 3;
-const APP_VERSION = "v2";
 
 export const statusApiApp = new Elysia()
 	// Add custom X-Powered-By header to all responses
 	.onAfterHandle(({ set }) => {
 		set.headers["X-Powered-By"] = "Elysia + Bun + Azure Container App";
 	})
-	.onError(({ code, error, set }) => {
-		if (code === "UNKNOWN" && error instanceof NotFoundException) {
+
+	.onError(({ error, set }) => {
+		const extra: Record<string, unknown> = {};
+
+		if (error instanceof NotFoundException) {
 			set.status = error.status;
-			return error.availableEndpoints;
+			extra.availableEndpoints = error.availableEndpoints;
+		} else if (error instanceof ValidationError) {
+			set.status = error.status;
+			extra.error = JSON.parse(error.message);
 		}
+		return {
+			error:
+				extra.error ??
+				(error instanceof Error ? error.message : "Unknown error"),
+			timestamp: new Date().toISOString(),
+			...extra,
+		};
 	})
 
 	.get(
 		"/",
-		() => ({
-			app: "Docker-Mastery",
-			author: "Tegar Wijaya Kusuma",
-			version: `${APP_VERSION}`,
-			date: `${new Date().toISOString()}`, // ISO 8601 format
-			uptime: `${Math.floor(process.uptime())}`, // Uptime in seconds
-		}),
+		({ set }) => {
+			const Handler = RootHandler;
+
+			set.status = 200;
+			return Handler;
+		},
 		{
 			detail: {
 				summary: "App info",
@@ -120,12 +132,12 @@ export const statusApiApp = new Elysia()
 				},
 				servers: [
 					{
-						url: "https://status-api.ashypebble-debb1f65.southeastasia.azurecontainerapps.io",
-						description: "Production",
-					},
-					{
 						url: "http://localhost:3000",
 						description: "Local",
+					},
+					{
+						url: "https://status-api.ashypebble-debb1f65.southeastasia.azurecontainerapps.io",
+						description: "Production",
 					},
 				],
 			},

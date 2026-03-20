@@ -2,7 +2,7 @@
  * Custom serverApiApp onError
  *
  * @author Tegar Wijaya Kusuma
- * @date 18 March 2026
+ * @date 20 March 2026
  */
 
 // Error thrown when an endpoint doesn't exist, wildcard error handler.

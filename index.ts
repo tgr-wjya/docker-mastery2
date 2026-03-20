@@ -2,7 +2,7 @@
  * Entrypoint for my System Status API
  *
  * @author Tegar Wijaya Kusuma
- * @date 18 March 2026
+ * @date 20 March 2026
  */
 
 import { statusApiApp } from "./src/app";
