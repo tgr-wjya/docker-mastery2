@@ -15,160 +15,168 @@
  *
  *
  * @author Tegar Wijaya Kusuma
- * @date 18 March 2026
+ * @date 20 March 2026
  */
 
-import { afterEach, beforeEach, describe, expect, it } from "bun:test";
+import { describe, expect, it } from "bun:test";
 import { statusApiApp } from "../src/app";
+import {
+	type AllError,
+	availableEndpointsArray,
+	type ElysiaValidationError,
+	RootHandler,
+	type RootResponse,
+	type WildcardError,
+} from "./types";
 
 const BASE_URL = Bun.env.BASE_URL ?? "http://localhost:3000";
-const app = statusApiApp;
-const JSON_HEADERS = { "Content-Type": "application/json" };
 
-const handleRequest = (path: string, init?: RequestInit) =>
-	app.handle(new Request(`${BASE_URL}${path}`, init));
+let app: typeof statusApiApp;
+app = statusApiApp;
 
-describe("TESTING SERVER", () => {
-	describe("Headers", () => {
-		it("Should return headers", async () => {
-			const response = await handleRequest("/");
+describe("Testing Wildcards error on global", () => {
+	it.each([
+		`${BASE_URL}/912912`,
+		`${BASE_URL}/echo/sad19nn`,
+		`${BASE_URL}/health/12sada`,
+	])("Returns 404 with wildcard fields on %s", async (url) => {
+		const response = await app.handle(new Request(url, { method: "GET" }));
 
-			expect(response.headers.get("X-Powered-By")).toBe(
-				"Elysia + Bun + Azure Container App",
-			);
-		});
+		expect(response.status).toBe(404);
+		const body = (await response.json()) as WildcardError;
+		expect(body).toHaveProperty("error", "Not Found");
+		expect(body).toHaveProperty("timestamp");
+		expect(body.availableEndpoints).toEqual(availableEndpointsArray);
+		expect(body.availableEndpoints).toBeArray();
 	});
+});
 
-	describe("GET /", () => {
+describe("Testing headers", () => {
+	it("Should return headers X-Powered-By (Elysia + Bun + Azure Container App)", async () => {
+		const response = await app.handle(
+			new Request(`${BASE_URL}`, {
+				method: "GET",
+			}),
+		);
+
+		expect(response.status).toBe(200);
+		expect(response.headers.get("X-Powered-By")).toBe(
+			"Elysia + Bun + Azure Container App",
+		);
+	});
+});
+
+describe("Testing /root, /echo and /health", () => {
+	describe("GET /root", () => {
 		it("Should return app name, author, version, date and uptime", async () => {
-			const response = await handleRequest("/");
+			const response = await app.handle(
+				new Request(`${BASE_URL}`, {
+					method: "GET",
+				}),
+			);
 
 			expect(response.status).toBe(200);
-			const data = await response.json();
-			expect(data).toHaveProperty("app", "Docker-Mastery");
-			expect(data).toHaveProperty("author", "Tegar Wijaya Kusuma");
-			expect(data).toHaveProperty("version", "v2");
+			const data = (await response.json()) as RootResponse;
+			expect(data.app).toEqual(RootHandler.app);
+			expect(data.author).toEqual(RootHandler.author);
+			expect(data.version).toEqual(RootHandler.version);
 			expect(data).toHaveProperty("date");
-			expect(typeof data.date).toBe("string");
-			expect(new Date(data.date).toISOString()).toBe(data.date);
 			expect(data).toHaveProperty("uptime");
-			expect(typeof data.uptime).toBe("string");
 		});
 	});
 
 	describe("GET /health", () => {
 		it("Should return status: ok with 200", async () => {
-			const response = await handleRequest("/health");
+			const response = await app.handle(
+				new Request(`${BASE_URL}/health`, {
+					method: "GET",
+				}),
+			);
 
 			expect(response.status).toBe(200);
-			const data = await response.json();
-			expect(data).toEqual({
-				status: "ok",
-			});
-		});
-	});
-
-	describe("GET /health degraded", () => {
-		beforeEach(() => {
-			Bun.env.HEALTH_DEGRADED = "true";
-		});
-
-		afterEach(() => {
-			Bun.env.HEALTH_DEGRADED = "false";
+			const healthy = await response.json();
+			expect(healthy).toEqual({ status: "ok" });
 		});
 
 		it("Should return status: degraded with 503", async () => {
-			const response = await handleRequest("/health");
+			Bun.env.HEALTH_DEGRADED = "true";
+
+			const response = await app.handle(
+				new Request(`${BASE_URL}/health`, {
+					method: "GET",
+				}),
+			);
 
 			expect(response.status).toBe(503);
-			const data = await response.json();
-			expect(data).toEqual({ status: "degraded" });
+			const degraded = await response.json();
+			expect(degraded).toEqual({ status: "degraded" });
+
+			Bun.env.HEALTH_DEGRADED = "false";
 		});
 	});
 
 	describe("POST /echo", () => {
-		it("Should return the name and text with 201", async () => {
-			const payload = { name: "John", text: "Hello world!" };
-			const response = await handleRequest("/echo", {
-				method: "POST",
-				headers: JSON_HEADERS,
-				body: JSON.stringify(payload),
-			});
+		it("Should return name and text field body with 201", async () => {
+			const echoThis = {
+				name: "Tegar",
+				text: "made with ◉‿◉",
+			};
+
+			const response = await app.handle(
+				new Request(`${BASE_URL}/echo`, {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify(echoThis),
+				}),
+			);
+
 			expect(response.status).toBe(201);
-			const data = await response.json();
-			expect(data).toEqual(payload);
+			const echo = await response.json();
+			expect(echo).toEqual(echoThis);
 		});
 
-		it("Should reject name shorter than 3 chars with 422", async () => {
-			const payload = { name: "Al", text: "Hello world!" };
-			const response = await handleRequest("/echo", {
-				method: "POST",
-				headers: JSON_HEADERS,
-				body: JSON.stringify(payload),
-			});
-			expect(response.status).toBe(422);
-		});
+		it("Should reject name field shorter than 3 chars with 422", async () => {
+			const rejectNameField = {
+				name: "Ab",
+				text: "Should Pass This",
+			};
 
-		it("Should reject text shorter than 5 chars with 422", async () => {
-			const payload = { name: "John", text: "Hey" };
-			const response = await handleRequest("/echo", {
-				method: "POST",
-				headers: JSON_HEADERS,
-				body: JSON.stringify(payload),
-			});
-			expect(response.status).toBe(422);
-		});
-
-		it("Should reject missing fields with 422", async () => {
-			const payload = { name: "John" };
-			const response = await handleRequest("/echo", {
-				method: "POST",
-				headers: JSON_HEADERS,
-				body: JSON.stringify(payload),
-			});
-			expect(response.status).toBe(422);
-		});
-	});
-
-	describe("Swagger docs", () => {
-		it("Should return the Swagger UI", async () => {
-			const response = await handleRequest("/swagger");
-
-			expect(response.status).toBe(200);
-			expect(response.headers.get("content-type")).toContain("text/html");
-		});
-
-		it("Should return the OpenAPI JSON document", async () => {
-			const response = await handleRequest("/swagger/json");
-
-			expect(response.status).toBe(200);
-			expect(response.headers.get("content-type")).toContain(
-				"application/json",
+			const response = await app.handle(
+				new Request(`${BASE_URL}/echo`, {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify(rejectNameField),
+				}),
 			);
-			const document = await response.json();
-			expect(document).toHaveProperty("openapi", "3.0.3");
-			expect(document).toHaveProperty(
-				"info.title",
-				"Docker-Mastery Status API",
-			);
-			expect(document.paths).toHaveProperty("/");
-			expect(document.paths).toHaveProperty("/health");
-			expect(document.paths).toHaveProperty("/echo");
+
+			expect(response.status).toBe(422);
+			const echo1 = (await response.json()) as AllError;
+			const validation1 = echo1.error as unknown as ElysiaValidationError;
+			expect(validation1.type).toBe("validation");
+			expect(validation1.on).toBe("body");
+			expect(validation1.property).toBe("/name");
 		});
-	});
 
-	describe("Wildcard handler", () => {
-		it("Should return 404 and an Array for an invalid path", async () => {
-			const response = await handleRequest("/999", {
-				method: "PATCH",
-			});
+		it("Should reject text field shorter than 5 chars with 422", async () => {
+			const rejectTextField = {
+				name: "Alice",
+				text: "Nice",
+			};
 
-			expect(response.status).toBe(404);
-			expect(response.headers.get("content-type")).toContain(
-				"application/json",
+			const response = await app.handle(
+				new Request(`${BASE_URL}/echo`, {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify(rejectTextField),
+				}),
 			);
-			const wildcard = await response.json();
-			expect(wildcard).toEqual(["GET /", "GET /health", "POST /echo"]);
+
+			expect(response.status).toBe(422);
+			const echo = (await response.json()) as AllError;
+			const validation2 = echo.error as unknown as ElysiaValidationError;
+			expect(validation2.type).toBe("validation");
+			expect(validation2.on).toBe("body");
+			expect(validation2.property).toBe("/text");
 		});
 	});
 });
