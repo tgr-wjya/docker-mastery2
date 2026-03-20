@@ -10,7 +10,6 @@
  * @date 20 March 2026
  */
 
-import { swagger } from "@elysiajs/swagger";
 import { Elysia, t, ValidationError } from "elysia";
 import { availableEndpointsArray } from "../tests/types";
 import { NotFoundException } from "./errors/errors";
