@@ -12,7 +12,7 @@
 
 import { swagger } from "@elysiajs/swagger";
 import { Elysia, t, ValidationError } from "elysia";
-import { RootHandler } from "../tests/types";
+import { availableEndpointsArray } from "../tests/types";
 import { NotFoundException } from "./errors/errors";
 
 /**
@@ -24,6 +24,23 @@ const HTTP_SERVICE_UNAVAILABLE = 503;
 // Schema validation Const
 const MIN_TEXT_LENGTH = 5;
 const MIN_NAME_LENGTH = 3;
+const APP_VERSION = "v3";
+
+export interface RootResponse {
+	app: string;
+	author: string;
+	version: string;
+	date: string;
+	uptime: string;
+}
+
+export const RootHandler: RootResponse = {
+	app: "Status-API",
+	author: "Tegar Wijaya Kusuma",
+	version: `${APP_VERSION}`,
+	date: `${new Date().toISOString()}`, // ISO 8601 format
+	uptime: `${Math.floor(process.uptime())}`, // Uptime in seconds
+};
 
 export const statusApiApp = new Elysia()
 	// Add custom X-Powered-By header to all responses
@@ -148,5 +165,5 @@ export const statusApiApp = new Elysia()
 	 * Wildcard handler
 	 */
 	.all("/*", () => {
-		throw new NotFoundException(["GET /", "GET /health", "POST /echo"]);
+		throw new NotFoundException(availableEndpointsArray);
 	});
