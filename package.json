@@ -12,7 +12,7 @@
 		"biome:format": "bunx biome format --write",
 		"biome:ci": "bunx biome ci",
 		"biome:check": "bunx biome check --write",
-		"dev": "bun --watch index.ts",
+		"dev": "doppler run -- bun --watch index.ts",
 		"test": "bun test"
 	},
 	"peerDependencies": {
